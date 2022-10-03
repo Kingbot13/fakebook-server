@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./passport");
 const mongoose = require("mongoose");
 var createError = require("http-errors");
 var express = require("express");
@@ -6,6 +7,7 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 const cors = require("cors");
+const apiRouter = require("./routes/api");
 
 mongoose.connect(process.env.DB, {
   useUnifiedTopology: true,
@@ -32,6 +34,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/api", apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

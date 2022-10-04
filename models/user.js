@@ -8,7 +8,7 @@ const UserSchema = new Schema({
   lastName: String,
   profileImage: Image,
   friends: [{ type: Schema.Types.ObjectId, ref: "Users" }],
-  facebookID: String,
+  facebookId: String,
 });
 
 UserSchema.plugin(findOrCreate);

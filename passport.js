@@ -10,9 +10,17 @@ passport.use(
       profileFields: ["id", "displayName", "photos", "email"],
     },
     function (accessToken, refreshToken, profile, cb) {
-      User.findOrCreate({ facebookId: profile.id }, function (err, user) {
-        return cb(err, user);
-      });
+      User.findOrCreate(
+        {
+          facebookId: profile.id,
+          firstName: profile.first_name,
+          lastName: profile.last_name,
+          profileImage: profile.picture,
+        },
+        function (err, user) {
+          return cb(err, user);
+        }
+      );
     }
   )
 );

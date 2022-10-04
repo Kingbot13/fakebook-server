@@ -20,6 +20,7 @@ router.get(
   // }
 );
 
+
 // get posts
 router.get('/posts', passport.authenticate('jwt', {session: false}), apiController.postsGet);
 

@@ -7,20 +7,21 @@ const async = require("async");
 
 exports.logInPost = (req, res, next) => {
   passport.authenticate("facebook", { session: false }, (err, user, info) => {
-    if (err || !user) {
-      return res.status(400).json({
-        message: "error logging in user",
-        user: user,
-      });
-    }
-    req.login(user, { session: false }, (err) => {
-      if (err) {
-        res.send(err);
-      }
-      // generate a signed token with contents of user obj and return token
-      const token = jwt.sign(user.toJSON(), process.env.SECRET_KEY);
-      return res.status(200).json({ user, token });
-    });
+    // if (err || !user) {
+    //   return res.status(400).json({
+    //     message: "error logging in user",
+    //     user: user,
+    //   });
+    // }
+    // req.login(user, { session: false }, (err) => {
+    //   if (err) {
+    //     res.send(err);
+    //   }
+    //   // generate a signed token with contents of user obj and return token
+    //   const token = jwt.sign(user.toJSON(), process.env.SECRET_KEY);
+    //   return res.status(200).json({ user, token });
+    // });
+    return res.redirect('/');
   })(req, res);
 };
 

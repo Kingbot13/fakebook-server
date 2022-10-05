@@ -72,11 +72,20 @@ router.put(
   apiController.postReactionsUpdate
 );
 
+// handle post deletion
+router.delete("/posts/:postId", apiController.postDelete);
+
 // handle comment creation
 router.post(
   "posts/:postId/comments",
   passport.authenticate("facebook-token", { session: false }),
   apiController.commentCreatePost
 );
+
+// handle comment update
+router.put("posts/:postId/comments/:commentId", apiController.commentUpdate);
+
+// handle comment deletion
+router.delete("posts/:postId/comments/:commentId", apiController.commentDelete);
 
 module.exports = router;

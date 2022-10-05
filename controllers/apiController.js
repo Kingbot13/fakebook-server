@@ -21,7 +21,7 @@ exports.logInPost = (req, res, next) => {
     //   const token = jwt.sign(user.toJSON(), process.env.SECRET_KEY);
     //   return res.status(200).json({ user, token });
     // });
-    return res.redirect('/');
+    return res.redirect("/");
   })(req, res);
 };
 
@@ -75,7 +75,7 @@ exports.postUpdate = [
     .escape(),
   (req, res, next) => {
     Post.findByIdAndUpdate(
-      req.params.id,
+      req.params.postId,
       {
         content: req.body.content,
       },
@@ -153,3 +153,87 @@ exports.commentCreatePost = [
     });
   },
 ];
+
+// handle post deletion
+// TODO: delete all comments associated with post
+exports.postDelete = (req, res, next) => {
+  Post.findByIdAndRemove(req.params.postId, (err, post) => {
+    if (err) {
+      return res.status(400).json({ message: "error deleting post", post });
+    }
+    return res.status(200).json({ message: "success" });
+  });
+};
+
+// handle comment update
+exports.commentUpdate = [
+  body("content", "content must not be empty")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: "error updating comment" });
+    }
+    Comment.findByIdAndUpdate(
+      req.params.commentId,
+      { content: req.body.content },
+      (err, comment) => {
+        if (err) {
+          return res
+            .status(400)
+            .json({ message: "error finding and updating comment", comment });
+        }
+        return res.status(200).json({ comment, message: "success" });
+      }
+    );
+  },
+];
+
+// handle comment deletion
+exports.commentDelete = (req, res, next) => {
+  async.parallel(
+    {
+      post(cb) {
+        Post.findById(req.params.postId).exec(cb);
+      },
+      comment(cb) {
+        Comment.findById(req.params.commentId).exec(cb);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({
+            message: "error finding post and/or comment",
+            post: results.post,
+            comment: results.comment,
+          });
+      }
+      const updatePostComments = results.post.comments.filter(
+        (comment) => comment._id !== req.params.commentId
+      );
+      Post.findByIdAndUpdate(
+        req.params.postId,
+        { comments: updatePostComments },
+        (err, post) => {
+          if (err) {
+            return res
+              .status(400)
+              .json({ message: "error finding or updating post", post });
+          }
+          Comment.findByIdAndRemove(req.params.commentId, (err) => {
+            if (err) {
+              return res
+                .status(400)
+                .json({ message: "error finding and removing comment" });
+            }
+            return res.status(200).json({ message: "success" });
+          });
+        }
+      );
+    }
+  );
+};

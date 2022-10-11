@@ -4,6 +4,7 @@ const passportJWT = require("passport-jwt");
 const { ExtractJwt } = require("passport-jwt");
 const JWTStrategy = passportJWT.Strategy;
 const FacebookTokenStrategy = require('passport-facebook-token');
+const User = require('./models/user');
  
 passport.use(new FacebookTokenStrategy({
     clientID: process.env.FACEBOOK_APP_ID,

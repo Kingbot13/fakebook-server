@@ -11,9 +11,9 @@ passport.use(new FacebookTokenStrategy({
     clientSecret: process.env.FACEBOOK_APP_SECRET,
   }, function(accessToken, refreshToken, profile, done) {
     User.findOrCreate({facebookId: profile.id}, {
-      first_name: profile._json.first_name,
-      last_name: profile._json.last_name,
-      profilePicUrl: profile.photos[0].value
+      firstName: profile._json.first_name,
+      lastName: profile._json.last_name,
+      profileImage: profile.photos[0].value
     }, function (error, user) {
       return done(error, user);
     });

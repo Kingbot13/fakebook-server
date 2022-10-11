@@ -4,38 +4,18 @@ const apiController = require("../controllers/apiController");
 
 const router = Router();
 
-router.get(
-  "/auth/facebook",
-  passport.authenticate("facebook", { session: false })
-);
-router.get(
-  "auth/facebook/callback",
-  passport.authenticate("facebook", {
-    session: false,
-    successRedirect: "/",
-    failureRedirect: "/api/auth/facebook",
-  })
-  // apiController.logInPost
-  // (req, res, next) => {
-  // return res.redirect('/');
-  //     .status(200)
-  //     .cookie("jwt", signToken(req.user), { httpOnly: true })
-  //     .redirect("/");
-  // }
-);
-
-router.post(
-  "/auth/facebook/token",
-  passport.authenticate("facebook-token", (req, res, next) => {
-    if (!req.user) {
-      return res.status(400);
-    }
-    return res.status(200).json({ user: req.user });
-  })
-);
+// router.post(
+//   "/auth/facebook/token",
+//   passport.authenticate("facebook-token", (req, res, next) => {
+//     if (!req.user) {
+//       return res.status(400);
+//     }
+//     return res.status(200).json({ user: req.user });
+//   })
+// );
 router.get(
   "/auth/facebook/token",
-  passport.authenticate("facebook-token"),
+  passport.authenticate("facebook-token", {session: false}),
   (req, res, next) => {
     if (!req.user) {
       return res.status(400);
@@ -73,7 +53,7 @@ router.put(
 );
 
 // handle post deletion
-router.delete("/posts/:postId", apiController.postDelete);
+router.delete("/posts/:postId", passport.authenticate('facebook-token', {session: false}),apiController.postDelete);
 
 // handle comment creation
 router.post(
@@ -83,9 +63,9 @@ router.post(
 );
 
 // handle comment update
-router.put("posts/:postId/comments/:commentId", apiController.commentUpdate);
+router.put("posts/:postId/comments/:commentId", passport.authenticate('facebook-token', {session: false}), apiController.commentUpdate);
 
 // handle comment deletion
-router.delete("posts/:postId/comments/:commentId", apiController.commentDelete);
+router.delete("posts/:postId/comments/:commentId", passport.authenticate('facebook-token', {session: false}), apiController.commentDelete);
 
 module.exports = router;

@@ -98,7 +98,15 @@ exports.postReactionsUpdate = (req, res, next) => {
     if (err || !post) {
       return res.status(400).json({ message: "error finding post", post });
     }
-    post.reactions.push({ reaction: "like", user: req.body.userId });
+    // if user exists in reactions array, remove user. Otherwise add user to reactions array
+    if (post.reactions.find((reaction) => reaction.user === req.body.userId)) {
+      const updateReactions = post.reactions.filter(
+        (reaction) => reaction.user !== req.body.userId
+      );
+      post.reactions = updateReactions;
+    } else {
+      post.reactions.push({ reaction: "like", user: req.body.userId });
+    }
     post.save((err) => {
       if (err) {
         return res
@@ -204,13 +212,11 @@ exports.commentDelete = (req, res, next) => {
     },
     (err, results) => {
       if (err) {
-        return res
-          .status(400)
-          .json({
-            message: "error finding post and/or comment",
-            post: results.post,
-            comment: results.comment,
-          });
+        return res.status(400).json({
+          message: "error finding post and/or comment",
+          post: results.post,
+          comment: results.comment,
+        });
       }
       const updatePostComments = results.post.comments.filter(
         (comment) => comment._id !== req.params.commentId
@@ -236,4 +242,34 @@ exports.commentDelete = (req, res, next) => {
       );
     }
   );
+};
+
+// handle comment reactions update
+exports.commentsReactionsUpdate = (req, res, next) => {
+  Comment.findById(req.params.commentId, (err, comment) => {
+    if (err || !comment) {
+      return res
+        .status(400)
+        .json({ message: "error finding comment", comment });
+    }
+    // if user exists in reactions array, remove user. Otherwise add user to reactions array
+    if (
+      comment.reactions.find((reaction) => reaction.user === req.body.userId)
+    ) {
+      const updateReactions = comment.reactions.filter(
+        (reaction) => reaction.user !== req.body.userId
+      );
+      comment.reactions = updateReactions;
+    } else {
+      comment.reactions.push({ reaction: "like", user: req.body.userId });
+    }
+    comment.save((err) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ message: "error updating reactions", comment });
+      }
+      return res.status(200).json({ comment, message: "success" });
+    });
+  });
 };

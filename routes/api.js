@@ -15,7 +15,7 @@ const router = Router();
 // );
 router.get(
   "/auth/facebook/token",
-  passport.authenticate("facebook-token", {session: false}),
+  passport.authenticate("facebook-token", { session: false }),
   (req, res, next) => {
     if (!req.user) {
       return res.status(400);
@@ -53,7 +53,11 @@ router.put(
 );
 
 // handle post deletion
-router.delete("/posts/:postId", passport.authenticate('facebook-token', {session: false}),apiController.postDelete);
+router.delete(
+  "/posts/:postId",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.postDelete
+);
 
 // handle comment creation
 router.post(
@@ -63,9 +67,24 @@ router.post(
 );
 
 // handle comment update
-router.put("posts/:postId/comments/:commentId", passport.authenticate('facebook-token', {session: false}), apiController.commentUpdate);
+router.put(
+  "posts/:postId/comments/:commentId",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.commentUpdate
+);
 
 // handle comment deletion
-router.delete("posts/:postId/comments/:commentId", passport.authenticate('facebook-token', {session: false}), apiController.commentDelete);
+router.delete(
+  "posts/:postId/comments/:commentId",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.commentDelete
+);
+
+// handle comment reactions update
+router.put(
+  "posts/:postId/comments/:commentId",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.commentsReactionsUpdate
+);
 
 module.exports = router;

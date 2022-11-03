@@ -89,9 +89,9 @@ exports.postReactionsUpdate = (req, res, next) => {
       const updateReactions = post.reactions.filter(
         (reaction) => reaction.user !== req.body.user
       );
-      post.reactions = updateReactions;
+      post.reactions = [...updateReactions];
     } else {
-      post.reactions.push({ reaction: "like", user: req.body.user });
+      post.reactions.push({ reaction: req.body.reaction, user: req.body.user });
     }
     post.save((err) => {
       if (err) {

@@ -82,7 +82,7 @@ router.delete(
 
 // handle comment reactions update
 router.put(
-  "posts/:postId/comments/:commentId",
+  "posts/:postId/comments/:commentId/reactions",
   passport.authenticate("facebook-token", { session: false }),
   apiController.commentsReactionsUpdate
 );

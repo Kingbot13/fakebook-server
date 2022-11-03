@@ -6,7 +6,7 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
   firstName: String,
   lastName: String,
-  profileImage: Image,
+  profileImage: String,
   friends: [{ type: Schema.Types.ObjectId, ref: "Users" }],
   facebookId: String,
 });

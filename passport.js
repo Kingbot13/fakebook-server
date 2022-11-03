@@ -3,6 +3,22 @@ const FacebookStrategy = require("passport-facebook").Strategy;
 const passportJWT = require("passport-jwt");
 const { ExtractJwt } = require("passport-jwt");
 const JWTStrategy = passportJWT.Strategy;
+const FacebookTokenStrategy = require('passport-facebook-token');
+const User = require('./models/user');
+ 
+passport.use(new FacebookTokenStrategy({
+    clientID: process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
+  }, function(accessToken, refreshToken, profile, done) {
+    User.findOrCreate({facebookId: profile.id}, {
+      firstName: profile._json.first_name,
+      lastName: profile._json.last_name,
+      profileImage: profile.photos[0].value
+    }, function (error, user) {
+      return done(error, user);
+    });
+  }
+));
 // jwt strategy
 passport.use(
   new JWTStrategy(

@@ -7,20 +7,21 @@ const async = require("async");
 
 exports.logInPost = (req, res, next) => {
   passport.authenticate("facebook", { session: false }, (err, user, info) => {
-    if (err || !user) {
-      return res.status(400).json({
-        message: "error logging in user",
-        user: user,
-      });
-    }
-    req.login(user, { session: false }, (err) => {
-      if (err) {
-        res.send(err);
-      }
-      // generate a signed token with contents of user obj and return token
-      const token = jwt.sign(user.toJSON(), process.env.SECRET_KEY);
-      return res.status(200).json({ user, token });
-    });
+    // if (err || !user) {
+    //   return res.status(400).json({
+    //     message: "error logging in user",
+    //     user: user,
+    //   });
+    // }
+    // req.login(user, { session: false }, (err) => {
+    //   if (err) {
+    //     res.send(err);
+    //   }
+    //   // generate a signed token with contents of user obj and return token
+    //   const token = jwt.sign(user.toJSON(), process.env.SECRET_KEY);
+    //   return res.status(200).json({ user, token });
+    // });
+    return res.redirect("/");
   })(req, res);
 };
 
@@ -74,7 +75,7 @@ exports.postUpdate = [
     .escape(),
   (req, res, next) => {
     Post.findByIdAndUpdate(
-      req.params.id,
+      req.params.postId,
       {
         content: req.body.content,
       },
@@ -97,7 +98,15 @@ exports.postReactionsUpdate = (req, res, next) => {
     if (err || !post) {
       return res.status(400).json({ message: "error finding post", post });
     }
-    post.reactions.push({ reaction: "like", user: req.body.user });
+    // if user exists in reactions array, remove user. Otherwise add user to reactions array
+    if (post.reactions.find((reaction) => reaction.user === req.body.userId)) {
+      const updateReactions = post.reactions.filter(
+        (reaction) => reaction.user !== req.body.userId
+      );
+      post.reactions = updateReactions;
+    } else {
+      post.reactions.push({ reaction: "like", user: req.body.userId });
+    }
     post.save((err) => {
       if (err) {
         return res
@@ -152,3 +161,115 @@ exports.commentCreatePost = [
     });
   },
 ];
+
+// handle post deletion
+// TODO: delete all comments associated with post
+exports.postDelete = (req, res, next) => {
+  Post.findByIdAndRemove(req.params.postId, (err, post) => {
+    if (err) {
+      return res.status(400).json({ message: "error deleting post", post });
+    }
+    return res.status(200).json({ message: "success" });
+  });
+};
+
+// handle comment update
+exports.commentUpdate = [
+  body("content", "content must not be empty")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: "error updating comment" });
+    }
+    Comment.findByIdAndUpdate(
+      req.params.commentId,
+      { content: req.body.content },
+      (err, comment) => {
+        if (err) {
+          return res
+            .status(400)
+            .json({ message: "error finding and updating comment", comment });
+        }
+        return res.status(200).json({ comment, message: "success" });
+      }
+    );
+  },
+];
+
+// handle comment deletion
+exports.commentDelete = (req, res, next) => {
+  async.parallel(
+    {
+      post(cb) {
+        Post.findById(req.params.postId).exec(cb);
+      },
+      comment(cb) {
+        Comment.findById(req.params.commentId).exec(cb);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return res.status(400).json({
+          message: "error finding post and/or comment",
+          post: results.post,
+          comment: results.comment,
+        });
+      }
+      const updatePostComments = results.post.comments.filter(
+        (comment) => comment._id !== req.params.commentId
+      );
+      Post.findByIdAndUpdate(
+        req.params.postId,
+        { comments: updatePostComments },
+        (err, post) => {
+          if (err) {
+            return res
+              .status(400)
+              .json({ message: "error finding or updating post", post });
+          }
+          Comment.findByIdAndRemove(req.params.commentId, (err) => {
+            if (err) {
+              return res
+                .status(400)
+                .json({ message: "error finding and removing comment" });
+            }
+            return res.status(200).json({ message: "success" });
+          });
+        }
+      );
+    }
+  );
+};
+
+// handle comment reactions update
+exports.commentsReactionsUpdate = (req, res, next) => {
+  Comment.findById(req.params.commentId, (err, comment) => {
+    if (err || !comment) {
+      return res
+        .status(400)
+        .json({ message: "error finding comment", comment });
+    }
+    // if user exists in reactions array, remove user. Otherwise add user to reactions array
+    if (
+      comment.reactions.find((reaction) => reaction.user === req.body.userId)
+    ) {
+      const updateReactions = comment.reactions.filter(
+        (reaction) => reaction.user !== req.body.userId
+      );
+      comment.reactions = updateReactions;
+    } else {
+      comment.reactions.push({ reaction: "like", user: req.body.userId });
+    }
+    comment.save((err) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ message: "error updating reactions", comment });
+      }
+      return res.status(200).json({ comment, message: "success" });
+    });
+  });
+};

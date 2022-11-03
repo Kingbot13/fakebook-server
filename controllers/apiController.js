@@ -97,7 +97,7 @@ exports.postReactionsUpdate = (req, res, next) => {
     if (err || !post) {
       return res.status(400).json({ message: "error finding post", post });
     }
-    post.reactions.push({ reaction: "like", user: req.body.userId });
+    post.reactions.push({ reaction: "like", user: req.body.user });
     post.save((err) => {
       if (err) {
         return res

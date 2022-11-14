@@ -306,3 +306,29 @@ exports.replyCreatePost = [
     });
   },
 ];
+
+// update reply
+exports.replyUpdate = [
+  body("content", "content must not be empty")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: "error updating reply" });
+    }
+    Reply.findByIdAndUpdate(
+      req.params.replyId,
+      { content: req.body.content },
+      (err, reply) => {
+        if (err) {
+          return res
+            .status(400)
+            .json({ message: "error finding and updating reply", reply });
+        }
+        return res.status(200).json({ reply, message: "success" });
+      }
+    );
+  },
+];

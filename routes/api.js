@@ -4,15 +4,6 @@ const apiController = require("../controllers/apiController");
 
 const router = Router();
 
-// router.post(
-//   "/auth/facebook/token",
-//   passport.authenticate("facebook-token", (req, res, next) => {
-//     if (!req.user) {
-//       return res.status(400);
-//     }
-//     return res.status(200).json({ user: req.user });
-//   })
-// );
 router.get(
   "/auth/facebook/token",
   passport.authenticate("facebook-token", { session: false }),

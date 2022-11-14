@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const Post = require("../models/post");
 const Comment = require("../models/comment");
+const Reply = require("../models/reply");
 const { body, validationResult } = require("express-validator");
 const passport = require("passport");
 const async = require("async");
@@ -259,3 +260,49 @@ exports.commentsReactionsUpdate = (req, res, next) => {
     });
   });
 };
+
+// create reply
+exports.replyCreatePost = [
+  body("content", "content must not be empty")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    const reply = new Reply({
+      content: req.body.content,
+      date: new Date(),
+      user: req.body.userId,
+      post: req.params.postId,
+      isReply: req.body.isReply,
+    });
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: "error creating reply", reply });
+    }
+    reply.save((err, theReply) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ message: "could not save comment", theReply });
+      }
+      Comment.findById(req.params.commentId, (err, comment) => {
+        if (err) {
+          return res
+            .status(400)
+            .json({ message: "could not find comment", comment });
+        }
+        comment.comments.push(theReply._id);
+        comment.save((err) => {
+          if (err) {
+            return res
+              .status(400)
+              .json({ message: "could not save changes to comment", comment });
+          }
+          return res
+            .status(200)
+            .json({ comment, theReply, message: "success" });
+        });
+      });
+    });
+  },
+];

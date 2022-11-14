@@ -332,3 +332,74 @@ exports.replyUpdate = [
     );
   },
 ];
+
+// reply reactions update
+exports.replyReactionsUpdate = (req, res, next) => {
+  Reply.findById(req.params.replyId, (err, reply) => {
+    if (err || !reply) {
+      return res.status(400).json({ message: "error finding reply", reply });
+    }
+    // if user exists in reactions array, remove user. Otherwise add user to reactions array
+    if (reply.reactions.find((reaction) => reaction.user === req.body.userId)) {
+      const updateReactions = reply.reactions.filter(
+        (reaction) => reaction.user !== req.body.userId
+      );
+      reply.reactions = updateReactions;
+    } else {
+      reply.reactions.push({ reaction: "like", user: req.body.userId });
+    }
+    reply.save((err) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ message: "error updating reactions", reply });
+      }
+      return res.status(200).json({ reply, message: "success" });
+    });
+  });
+};
+
+// delete reply
+exports.replyDelete = (req, res, next) => {
+  async.parallel(
+    {
+      reply(cb) {
+        Reply.findById(req.params.replyId).exec(cb);
+      },
+      comment(cb) {
+        Comment.findById(req.params.commentId).exec(cb);
+      },
+    },
+    (err, results) => {
+      if (err) {
+        return res.status(400).json({
+          message: "error finding reply and/or comment",
+          reply: results.reply,
+          comment: results.comment,
+        });
+      }
+      const updateCommentReplies = results.comment.replies.filter(
+        (reply) => reply._id !== req.params.replyId
+      );
+      Comment.findByIdAndUpdate(
+        req.params.commentId,
+        { replies: updateCommentReplies },
+        (err, comment) => {
+          if (err) {
+            return res
+              .status(400)
+              .json({ message: "error finding or updating comment", comment });
+          }
+          Reply.findByIdAndRemove(req.params.replyId, (err) => {
+            if (err) {
+              return res
+                .status(400)
+                .json({ message: "error finding and removing reply" });
+            }
+            return res.status(200).json({ message: "success" });
+          });
+        }
+      );
+    }
+  );
+};

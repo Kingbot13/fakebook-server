@@ -78,4 +78,32 @@ router.put(
   apiController.commentsReactionsUpdate
 );
 
+// create reply
+router.post(
+  "comments/:commentId/replies",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.replyCreatePost
+);
+
+// update reply
+router.put(
+  "comments/:commentId/replies/replyId",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.replyUpdate
+);
+
+// update reply reactions
+router.put(
+  "comments/:commentId/replies/replyId/reactions",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.replyUpdate
+);
+
+// delete reply
+router.delete(
+  "comments/:commentId/replies/replyId",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.replyDelete
+);
+
 module.exports = router;

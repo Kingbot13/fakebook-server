@@ -50,6 +50,13 @@ router.delete(
   apiController.postDelete
 );
 
+// get comments
+router.get(
+  "/comments",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.postsGet
+);
+
 // handle comment creation
 router.post(
   "posts/:postId/comments",
@@ -76,6 +83,13 @@ router.put(
   "posts/:postId/comments/:commentId/reactions",
   passport.authenticate("facebook-token", { session: false }),
   apiController.commentsReactionsUpdate
+);
+
+// get replies
+router.get(
+  "/replies",
+  passport.authenticate("facebook-token", { session: false }),
+  apiController.repliesGet
 );
 
 // create reply

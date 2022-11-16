@@ -105,6 +105,19 @@ exports.postReactionsUpdate = (req, res, next) => {
   });
 };
 
+// get all comments
+exports.commentsGet = (req, res, next) => {
+  Comment.find()
+    .populate("user")
+    .populate("replies")
+    .exec((err, comments) => {
+      if (err) {
+        return res.status(400).json({ message: "error getting comments" });
+      }
+      return res.status(200).json({ comments });
+    });
+};
+
 // handle comment creation
 exports.commentCreatePost = [
   body("content", "content must not be empty")
@@ -259,6 +272,19 @@ exports.commentsReactionsUpdate = (req, res, next) => {
       return res.status(200).json({ comment, message: "success" });
     });
   });
+};
+
+// get all replies
+exports.repliesGet = (req, res, next) => {
+  Reply.find()
+    .populate("user")
+    .populate("replies")
+    .exec((err, replies) => {
+      if (err) {
+        return res.status(400).json({ message: "error getting replies" });
+      }
+      return res.status(200).json({ replies });
+    });
 };
 
 // create reply
